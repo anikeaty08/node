@@ -1,36 +1,88 @@
-# AdNode Aleo - Private Ad Network
+# AdNode - Private Advertising Network on Aleo
 
-Production-oriented full-stack scaffold for a decentralized ad network on Aleo with private-by-default campaign economics.
+![Aleo](https://img.shields.io/badge/Blockchain-Aleo-1d4ed8?style=for-the-badge)
+![Leo](https://img.shields.io/badge/Contracts-Leo-0f172a?style=for-the-badge)
+![React](https://img.shields.io/badge/Frontend-React%2018-0ea5e9?style=for-the-badge)
+![Express](https://img.shields.io/badge/Backend-Express-16a34a?style=for-the-badge)
+![Privacy First](https://img.shields.io/badge/Privacy-ZK%20by%20Default-7c3aed?style=for-the-badge)
 
-## What is implemented
+AdNode is a decentralized ad network designed for Aleo where campaign finances and performance-sensitive data stay private by architecture, not by add-on logic.
 
-- `contracts/` contains four Leo programs:
-  - `token_registry/main.leo`
-  - `ad_registry/main.leo`
-  - `ad_analytics/main.leo`
-  - `ad_payouts/main.leo`
-- `frontend/` is a React 18 + TypeScript app with:
-  - Landing page
-  - Onboarding flow (wallet + role routing)
-  - Hoster dashboard (campaign form, tx execution, charts)
-  - Developer dashboard (slot registration, withdrawals, charts)
-  - Marketplace page
-  - Docs page with embed integration and explorer references
-- `backend/` is Express + Mongo with:
+Hosters (advertisers) launch campaigns, developers (publishers) register ad slots, and token flows are intended to run through Aleo token standards (USDC/USDCx integration path included in this codebase).
+
+## What This Project Does
+
+- Lets hosters create campaigns with private financial records.
+- Lets developers register slots and receive earnings through on-chain payout transitions.
+- Exposes only marketplace-safe metadata publicly (creative/category/status), while budget and spend remain private.
+- Uses a backend only for off-chain metadata and creative delivery (Mongo + IPFS/Pinata), not private finance data.
+- Provides a full React app with onboarding, dashboards, marketplace, docs, and analytics UI.
+
+## Architecture
+
+### 1) Aleo contracts (`contracts/`)
+
+- `token_registry/main.leo`
+  - Token integration surface for USDC/USDCx transfer and approvals.
+- `ad_registry/main.leo`
+  - Campaign creation, slot registration, campaign assignment, deactivation.
+  - Private records + public marketplace mappings.
+- `ad_analytics/main.leo`
+  - Private impression/click/spend record updates and owner-only stats proof path.
+- `ad_payouts/main.leo`
+  - Private earnings accumulation and withdrawal transitions.
+
+### 2) Frontend (`frontend/`)
+
+- React 18 + TypeScript + Tailwind + Framer Motion + Recharts.
+- Wallet adapters integrated (Leo + Puzzle) via Provable adapter packages.
+- Pages:
+  - Landing
+  - Onboarding
+  - Hoster Dashboard
+  - Developer Dashboard
+  - Marketplace
+  - Docs
+- Transaction execution and status flow wired via wallet adapter APIs.
+
+### 3) Backend (`backend/`)
+
+- Express + MongoDB + Pinata upload support.
+- Off-chain metadata APIs:
   - `POST /api/campaigns`
   - `GET /api/campaigns`
-  - `POST /api/upload` (Pinata upload)
+  - `POST /api/upload`
   - `GET /api/embed.js?campaignId=X`
   - `GET /api/embed-frame?campaignId=X`
-- Mongo persistence intentionally stores off-chain metadata only:
-  - `aleoTxId`, `campaignId`, `title`, `description`, `creativeURI`, `category`, `ownerAddress`, `createdAt`
 
-## Environment setup
+## Data Privacy Model
 
-### Backend
+Stored on-chain privately (Aleo records):
+- budget
+- CPC/CPM
+- spend
+- earnings
+- private campaign/slot/stat records
 
-Copy `backend/.env.example` to `backend/.env` and set:
+Stored publicly on-chain (Aleo mappings):
+- campaign marketplace info (non-financial)
+- slot marketplace info (non-financial)
 
+Stored off-chain (Mongo only):
+- `aleoTxId`
+- `campaignId`
+- `title`
+- `description`
+- `creativeURI`
+- `category`
+- `ownerAddress`
+- `createdAt`
+
+## Quick Start
+
+## 1) Backend
+
+Copy `backend/.env.example` to `backend/.env`, then configure:
 - `MONGODB_URI`
 - `PINATA_JWT`
 - `PINATA_GATEWAY`
@@ -44,11 +96,11 @@ npm install
 npm run dev
 ```
 
-### Frontend
+## 2) Frontend
 
-Copy `frontend/.env.example` to `frontend/.env` and set:
-
+Copy `frontend/.env.example` to `frontend/.env`, then configure:
 - `VITE_BACKEND_URL`
+- `VITE_ALEO_API_URL`
 - `VITE_TOKEN_REGISTRY_PROGRAM`
 - `VITE_AD_REGISTRY_PROGRAM`
 - `VITE_AD_ANALYTICS_PROGRAM`
@@ -62,33 +114,49 @@ npm install
 npm run dev
 ```
 
-Build check:
+Build:
 
 ```bash
 npm run build
 ```
 
-## Deployed contract addresses
+## Project Structure
 
-Set these after testnet deployment:
+```text
+.
+├── contracts/
+│   ├── token_registry/
+│   ├── ad_registry/
+│   ├── ad_analytics/
+│   └── ad_payouts/
+├── frontend/
+└── backend/
+```
 
-- token_registry: `TODO_TESTNET_ADDRESS`
-- ad_registry: `TODO_TESTNET_ADDRESS`
-- ad_analytics: `TODO_TESTNET_ADDRESS`
-- ad_payouts: `TODO_TESTNET_ADDRESS`
+## Deployment Checklist (Aleo Testnet)
 
-## Honest status / remaining work
+- Install Aleo toolchain (`leo`, `snarkos`) and Rust/Cargo.
+- Compile all 4 contracts.
+- Deploy contracts to Aleo testnet.
+- Set deployed program IDs in `frontend/.env`.
+- Fund testnet wallets and execute end-to-end hoster/developer flows.
+- Verify tx IDs and mapping reads in UI.
 
-This repository now contains the full product structure and working UI/API flow, but external deployment and final on-chain wiring still require environment-specific operator steps:
+## Contract Addresses
 
-- Finalize official Aleo Testnet USDC/USDCx program IDs and exact cross-program calls in `token_registry`.
-- Compile and deploy all Leo programs with your Aleo toolchain and funded testnet accounts.
-- Replace placeholder program IDs in frontend `.env`.
-- Execute end-to-end wallet transactions on live testnet and capture real tx IDs for both Hoster and Developer flows.
-- Enable wallet-driven private record decryption (`requestRecords`) per wallet permissions in your runtime environment.
+Fill after deployment:
 
-## Coming soon features (intentionally disabled in docs page)
+- `token_registry`: `TODO_TESTNET_ADDRESS`
+- `ad_registry`: `TODO_TESTNET_ADDRESS`
+- `ad_analytics`: `TODO_TESTNET_ADDRESS`
+- `ad_payouts`: `TODO_TESTNET_ADDRESS`
+
+## Coming Soon (Intentionally Disabled)
 
 - Automatic impression relayer (needs trusted oracle)
 - Multi-token auction between hosters
 - Cross-chain USDC bridge
+
+## Notes
+
+This repository is structured as a production-ready base with real UI/API flows, but final on-chain completeness depends on your local Aleo toolchain, funded wallets, and deployed program IDs in your environment.
